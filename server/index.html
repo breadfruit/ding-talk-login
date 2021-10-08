@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://g.alicdn.com/dingding/dinglogin/0.0.5/ddLogin.js"></script>
+
+</head>
+
+<body>
+    <div onclick="sweep_code()">点击钉钉登录</div>
+    <div id="login_container"></div>
+    <script>
+        var url = encodeURIComponent('http://abcde.vaiwan.com/index')
+        var goto = encodeURIComponent(
+            'https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=dingjok37snmnbbs9vie&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=' +
+            url)
+        var obj = DDLogin({
+            id: "login_container", //这里需要你在自己的页面定义一个HTML标签并设置id，例如<div id="login_container"></div>或<span id="login_container"></span>
+            goto,
+            style: "border:none;background-color:#FFFFFF;",
+            width: "365",
+            height: "400"
+        });
+
+        function sweep_code() {
+            window.location.href =
+                "https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=dingjok37snmnbbs9vie&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=http://abcde.vaiwan.com/index"
+        }
+        var socket = new WebSocket('ws://192.168.1.7:8080/index');
+
+        socket.addEventListener('open', function (event) {
+            socket.send('Hello Server!');
+        });
+
+        // Listen for messages
+        socket.addEventListener('message', function (event) {
+            console.log('Message from server ', event.data);
+        });
+
+
+        var handleMessage = function (event) {
+            var origin = event.origin;
+            console.log("origin", event.origin);
+            if (origin == "https://login.dingtalk.com") { //判断是否来自ddLogin扫码事件。
+                var loginTmpCode = event.data;
+                //获取到loginTmpCode后就可以在这里构造跳转链接进行跳转了
+
+                console.log("loginTmpCode", loginTmpCode);
+                window.location.href = `https://oapi.dingtalk.com/connect/oauth2/sns_authorize?appid=dingjok37snmnbbs9vie&response_type=code&scope=snsapi_login&state=STATE&redirect_uri=http://abcde.vaiwan.com/index&loginTmpCode=${loginTmpCode}`
+            }
+        };
+        if (typeof window.addEventListener != 'undefined') {
+            window.addEventListener('message', handleMessage, false);
+        } else if (typeof window.attachEvent != 'undefined') {
+            window.attachEvent('onmessage', handleMessage);
+        }
+    </script>
+
+</body>
+
+</html>
